@@ -11,9 +11,11 @@ import java.util.Date;
 
 public class Main {
 
-  Scanner scan = new Scanner(new File("entrada"));
-  //Scanner scan = new Scanner(System.in);
+  // Tipo da entrada
+  //Scanner scan = new Scanner(new File("entrada"));
+  Scanner scan = new Scanner(System.in);
 
+  /* Contadores */
   public static int numeroDeUsuarios;
   public static int numeroDeRecursos;
 
@@ -26,20 +28,23 @@ public class Main {
   public static int aulaTradicional;
   public static int apresentacao;
   public static int laboratorio;
+  /* Contadores */
 
-  public static String[][] usuario = new String[100][3];
-  public static Boolean[] usuarioOcupado = new Boolean[100];
+  /* Dados do Sistema */
+  public static String[][] usuario = new String[100][3]; //100 usuários, cada um com 3 informações
   public static int[] numeroDeAlocacoesPorUsuario = new int[100];
 
-  public static String[][] recurso = new String[100][2];
+  public static String[][] recurso = new String[100][2]; //100 recursos, cada um com 2 informações
   public static int[] numeroDeAlocacoesPorRecurso = new int[100];
 
-  public static String[][] atividade = new String[1000][8];
-  public static int[][][] horarioAtividade = new int[1000][2][5]; // [][0][] início, [][1][] fim
+  public static String[][] atividade = new String[1000][8]; //1000 atividades, cada uma com 8 informações
+  public static int[][][] horarioAtividade = new int[1000][2][5]; // 1000 datas, cada uma com início e fim, e cada um com 5 informações
+  /* Dados do Sistema*/
 
   public Main() throws FileNotFoundException {
   }
 
+  // Faz uma busca pelo ID do usuário de acordo com o nome dele
   public int getUsuarioIdByName(String nome) {
 
     for (int i = 0; i < numeroDeUsuarios; i ++) {
@@ -53,6 +58,7 @@ public class Main {
     return(9999);
   }
 
+  // Faz uma busca pelo ID do recurso de acordo com o nome dele
   public int getRecursoIdByName(String nome) {
 
     for (int i = 0; i < numeroDeRecursos; i ++) {
@@ -66,6 +72,7 @@ public class Main {
     return(9999);
   }
 
+  // Altera o Status das Atividades
   public void alterarStatusDaAtividade() {
 
     System.out.println("Deseja alterar algum status? (-1 == N)");
@@ -101,6 +108,7 @@ public class Main {
     System.out.println("Status da Atividade alterado com sucesso!");
   }
 
+  // Imprime na tela a atividade armazenada no índice 'i'
   public void printarAtividade(int i) {
 
     System.out.println('\t' + String.valueOf(i) + " - Título: " + atividade[i][0]);
@@ -117,7 +125,10 @@ public class Main {
     System.out.println("\t\tStatus: " + atividade[i][7] + '\n');
   }
 
+  // Cadastra um usuário
   public void cadastrarUsuario() {
+
+    System.out.println("-------Cadastro de Usuário--------");
 
     System.out.println("Digite o nome:");
     String nome =  scan.nextLine();
@@ -131,14 +142,16 @@ public class Main {
     usuario[numeroDeUsuarios][0] = nome;
     usuario[numeroDeUsuarios][1] = email;
     usuario[numeroDeUsuarios][2] = tipo;
-    usuarioOcupado[numeroDeUsuarios] = false;
     numeroDeAlocacoesPorUsuario[numeroDeUsuarios] = 0;
     numeroDeUsuarios += 1;
 
     System.out.println("Usuário cadastrado com sucesso!\n");
   } // 1
 
+  // Cadastra um recurso
   public void cadastrarRecurso() {
+
+    System.out.println("-------Cadastro de Recurso--------");
 
     System.out.println("Digite a identificação: ");
     String identificacao = scan.nextLine();
@@ -154,7 +167,10 @@ public class Main {
     System.out.println("Recurso cadastrado com sucesso!\n");
   } // 2
 
+  // Cadastra uma atividade (aloca um recurso)
   public void cadastrarAtividade() {
+
+    System.out.println("------Cadastro de Atividade-------");
 
     System.out.println("Recurso desejado: ");
     String recursoDesejado = scan.nextLine();
@@ -254,7 +270,10 @@ public class Main {
     System.out.println("Recurso em processo de alocação!\n");
   } // 3
 
+  // Consulta (pesquisa) um usuário
   public void consultarUsuario() {
+
+    System.out.println("-------Consulta de Usuário--------");
 
     System.out.println("Pesquisar usuário: ");
     String usuarioPesquisado = scan.nextLine();
@@ -291,7 +310,10 @@ public class Main {
     }
   } // 4
 
+  // Consulta (pesquisa) um recurso
   public void consultarRecurso() {
+
+    System.out.println("-------Consulta de Recurso--------");
 
     System.out.println("Pesquisar recurso: ");
     String recursoPesquisado = scan.nextLine();
@@ -326,7 +348,10 @@ public class Main {
     }
   } // 5
 
+  // Visualiza todas as atividades
   public void visualizarAtividades() {
+
+    System.out.println("----Visualização de Atividades----");
 
     System.out.println("\nAtividades:");
     for (int i = 0; i < totalDeAlocacoes; i ++) {
@@ -337,7 +362,10 @@ public class Main {
     System.out.printf("\n");
   } // 6
 
+  // Imprime um relatório do sistema
   public void relatorio() {
+
+    System.out.println("------------Relatório-------------");
 
     System.out.println("Quantidade de Usuários: " + numeroDeUsuarios);
     System.out.println("Recursos: ");
@@ -357,6 +385,7 @@ public class Main {
 
     Main mini = new Main();
 
+    // Zera os contadores
     numeroDeUsuarios = 0;
     numeroDeRecursos = 0;
     emProcessoDeAlocacao = 0;
@@ -368,8 +397,10 @@ public class Main {
     apresentacao = 0;
     laboratorio = 0;
 
+    // Menu principal
     while (true) {
 
+      System.out.println("----------Menu Principal----------");
       System.out.println("1 - Cadastrar Usuário");
       System.out.println("2 - Cadastrar Recurso");
       System.out.println("3 - Cadastrar Atividade"); // Alocar recurso
@@ -377,7 +408,7 @@ public class Main {
       System.out.println("5 - Consultar Recurso");
       System.out.println("6 - Visualizar Atividades");
       System.out.println("7 - Relatório");
-      
+
       int comando = mini.scan.nextInt();
       mini.scan.nextLine();
 
@@ -400,16 +431,5 @@ public class Main {
           break;
       }
     }
-
   }
 }
-
-/*    WORKING WORKING
-System.out.println("\n\n\n\n Let's see:");
-      System.out.println(desejado);
-      for (int i = 0; i < 2; i ++) {
-          for (int j = 0; j < 5; j ++) {
-              System.out.printf("%d|", data[i][j]);
-          }
-          System.out.println();
-      }*/
