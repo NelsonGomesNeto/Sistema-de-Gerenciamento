@@ -44,13 +44,61 @@ public class Main {
 
     for (int i = 0; i < numeroDeUsuarios; i ++) {
 
-      if (nome.equals(usuario[i][0])) {
+      if (nome.toUpperCase().equals(usuario[i][0].toUpperCase())) {
 
         return(i);
       }
     }
 
     return(9999);
+  }
+
+  public int getRecursoIdByName(String nome) {
+
+    for (int i = 0; i < numeroDeRecursos; i ++) {
+
+      if (nome.toUpperCase().equals(recurso[i][0].toUpperCase())) {
+
+        return(i);
+      }
+    }
+
+    return(9999);
+  }
+
+  public void alterarStatusDaAtividade() {
+
+    System.out.println("Deseja alterar algum status? (-1 == N)");
+    int i = scan.nextInt();
+    if (i == -1) {
+      return;
+    } else if (i >= totalDeAlocacoes) {
+      System.out.println("Comando Inválido!");
+      return;
+    }
+
+    if (atividade[i][7].equals("EM PROCESSO DE ALOCAÇÃO")) {
+
+      atividade[i][7] = "ALOCADO";
+      emProcessoDeAlocacao -= 1;
+      alocado += 1;
+    } else if (atividade[i][7].equals("ALOCADO")) {
+
+      atividade[i][7] = "EM ANDAMENTO";
+      alocado -= 1;
+      emAndamento += 1;
+    } else if (atividade[i][7].equals("EM ANDAMENTO")) {
+
+      atividade[i][7] = "CONCLUÍDO";
+      emAndamento -= 1;
+      concluido += 1;
+    } else if (atividade[7][7].equals("CONCLUÍDO!")) {
+
+      System.out.println("Essa atividade já foi concluída!");
+      return;
+    }
+
+    System.out.println("Status da Atividade alterado com sucesso!");
   }
 
   public void printarAtividade(int i) {
@@ -88,7 +136,7 @@ public class Main {
     numeroDeUsuarios += 1;
 
     System.out.println("Usuário cadastrado com sucesso!\n");
-  }
+  } // 1
 
   public void cadastrarRecurso() {
 
@@ -104,190 +152,179 @@ public class Main {
     numeroDeRecursos += 1;
 
     System.out.println("Recurso cadastrado com sucesso!\n");
-  }
+  } // 2
 
   public void cadastrarAtividade() {
 
-    boolean permitido = true, localizado = false;
-
     System.out.println("Recurso desejado: ");
     String recursoDesejado = scan.nextLine();
+    int idRecurso = getRecursoIdByName(recursoDesejado);
+    if (idRecurso == 9999) {
+      System.out.println("Recurso não encontrado!\n");
+      return;
+    }
 
     System.out.println("Nome do alocador: ");
     String usuarioAlocador = scan.nextLine();
+    int idUsuario = getUsuarioIdByName(usuarioAlocador);
+    if (idUsuario == 9999) {
+      System.out.println("Usuário não encontrado!\n");
+      return;
+    }
 
-    for (int i = 0; i < numeroDeRecursos; i ++) {
+    System.out.println("Tipo da atividade: ");
+    String tipoDaAtividade = scan.nextLine().toUpperCase();
+    if ((tipoDaAtividade.equals("AULA TRADICIONAL") || tipoDaAtividade.equals("LABORATÓRIO")) && !usuario[idUsuario][2].equals("PROFESSOR")) {
+      System.out.println("Você não pode alocar esse tipo de atividade!\n");
+      return;
+    }
 
-      if (recursoDesejado.equals(recurso[i][0])) {
-        localizado = true;
+    System.out.println("Data de início (H:mm d/m/a): ");
+    int[][] data = new int[2][5];
+    for (int j = 0; j < 5; j ++) {
+      data[0][j] = scan.nextInt();
+    }
+    System.out.println("Data de término (H:mm d/m/a): ");
+    for (int j = 0; j < 5; j ++) {
+      data[1][j] = scan.nextInt();
+    }
+    scan.nextLine();
 
-        System.out.println("Data de início (H:mm d/m/a): ");
-        int[][] data = new int[2][5];
-        for (int j = 0; j < 5; j ++) {
-          data[0][j] = scan.nextInt();
-        }
-        System.out.println("Data de término (H:mm d/m/a): ");
-        for (int j = 0; j < 5; j ++) {
-          data[1][j] = scan.nextInt();
-        }
-        scan.nextLine();
+    // Convertendo para minutos
+    int dataInicio, dataFim, alocacaoInicio, alocacaoFim;
+    dataInicio = (data[0][4] * 365 * 24 * 60) + (data[0][3] * 31 * 24 * 60) + (data[0][2] * 24 * 60) + (data[0][0] * 60) + (data[0][1]);
+    dataFim = (data[1][4] * 365 * 24 * 60) + (data[1][3] * 31 * 24 * 60) + (data[1][2] * 24 * 60) + (data[1][0] * 60) + (data[1][1]);
+    if (dataInicio > dataFim) {
+      System.out.println("A data de início deve ser menor que a data de término!\n");
+      return;
+    }
 
-        int dataInicio, dataFim, alocacaoInicio, alocacaoFim;
-        dataInicio = (data[0][4] * 365 * 24 * 60) + (data[0][3] * 31 * 24 * 60) + (data[0][2] * 24 * 60) + (data[0][0] * 60) + (data[0][1]);
-        dataFim = (data[1][4] * 365 * 24 * 60) + (data[1][3] * 31 * 24 * 60) + (data[1][2] * 24 * 60) + (data[1][0] * 60) + (data[1][1]);
+    for (int j = 0; j < totalDeAlocacoes; j ++) { // Verificando se o horário está disponível
 
-        for (int j = 0; j < totalDeAlocacoes; j ++) { // Verificando se o horário está disponível
+      if (recursoDesejado.toUpperCase().equals(atividade[j][3].toUpperCase()) || usuarioAlocador.toUpperCase().equals(atividade[j][2].toUpperCase())) { // Situações de horário conflitante
 
-          if (recursoDesejado.equals(atividade[j][3]) || usuarioAlocador.equals(atividade[j][2])) { // Situações de horário conflitante
+        alocacaoInicio = (horarioAtividade[j][0][4] * 365 * 24 * 60) + (horarioAtividade[j][0][3] * 31 * 24 * 60) + (horarioAtividade[j][0][2] * 24 * 60) + (horarioAtividade[j][0][0] * 60) + (horarioAtividade[j][0][1]);
+        alocacaoFim = (horarioAtividade[j][1][4] * 365 * 24 * 60) + (horarioAtividade[j][1][3] * 31 * 24 * 60) + (horarioAtividade[j][1][2] * 24 * 60) + (horarioAtividade[j][1][0] * 60) + (horarioAtividade[j][1][1]);
 
-            alocacaoInicio = (horarioAtividade[j][0][4] * 365 * 24 * 60) + (horarioAtividade[j][0][3] * 31 * 24 * 60) + (horarioAtividade[j][0][2] * 24 * 60) + (horarioAtividade[j][0][0] * 60) + (horarioAtividade[j][0][1]);
-            alocacaoFim = (horarioAtividade[j][1][4] * 365 * 24 * 60) + (horarioAtividade[j][1][3] * 31 * 24 * 60) + (horarioAtividade[j][1][2] * 24 * 60) + (horarioAtividade[j][1][0] * 60) + (horarioAtividade[j][1][1]);
+        if ((dataInicio >= alocacaoInicio && dataInicio <= alocacaoFim) || (dataFim >= alocacaoInicio && dataFim <= alocacaoFim)) {
 
-            if ((dataInicio <= alocacaoInicio && dataFim <= alocacaoFim) ||
-              (dataInicio >= alocacaoFim && dataFim <= alocacaoFim)    ||
-              (dataInicio <=  alocacaoInicio && dataFim >= alocacaoFim)) {
-
-              System.out.println("Você não pode alocar esse recurso nesse horário!\n");
-              permitido = false;
-              break;
-            }
-          }
-        }
-
-        if (permitido == true) {
-
-          System.out.println("Título da atividade: ");
-          String tituloDaAtividade = scan.nextLine();
-
-          System.out.println("Tipo da atividade: ");
-          String tipoDaAtividade = scan.nextLine().toUpperCase();
-
-          System.out.println("Descreva a atividade: ");
-          String descricaoDaAtividade = scan.nextLine();
-
-          System.out.println("Participantes da atividade: ");
-          String participantesDaAtividade = scan.nextLine();
-
-          System.out.println("Material de apoio: ");
-          String materialDeApoioDaAtividade = scan.nextLine();
-          
-
-          horarioAtividade[totalDeAlocacoes][0] = data[0];
-          horarioAtividade[totalDeAlocacoes][1] = data[1];
-
-          atividade[totalDeAlocacoes][0] = tituloDaAtividade;
-          atividade[totalDeAlocacoes][1] = tipoDaAtividade;
-          atividade[totalDeAlocacoes][2] = usuarioAlocador;
-          atividade[totalDeAlocacoes][3] = recursoDesejado;
-          atividade[totalDeAlocacoes][4] = descricaoDaAtividade;
-          atividade[totalDeAlocacoes][5] = participantesDaAtividade;
-          atividade[totalDeAlocacoes][6] = materialDeApoioDaAtividade;
-          atividade[totalDeAlocacoes][7] = "EM PROCESSO DE ALOCAÇÃO";
-          
-          numeroDeAlocacoesPorRecurso[i] += 1;
-          numeroDeAlocacoesPorUsuario[getUsuarioIdByName(usuarioAlocador)] += 1;
-
-          emProcessoDeAlocacao += 1;
-          if (tipoDaAtividade.equals("AULA TRADICIONAL")) {
-            aulaTradicional += 1;
-          } else if (tipoDaAtividade.equals("LABORATÓRIO")) {
-            laboratorio += 1;
-          } else {
-            apresentacao += 1;
-          }
-          totalDeAlocacoes += 1;
-
-          System.out.println("Recurso em processo de alocação!\n");
+          System.out.println("Você não pode alocar esse recurso nesse horário!\n");
+          return;
         }
       }
     }
 
-    if (localizado == false) {
-      System.out.println("Recurso não localizado");
+    System.out.println("Título da atividade: ");
+    String tituloDaAtividade = scan.nextLine();
+
+    System.out.println("Descreva a atividade: ");
+    String descricaoDaAtividade = scan.nextLine();
+
+    System.out.println("Participantes da atividade: ");
+    String participantesDaAtividade = scan.nextLine();
+
+    System.out.println("Material de apoio: ");
+    String materialDeApoioDaAtividade = scan.nextLine();
+
+    horarioAtividade[totalDeAlocacoes][0] = data[0];
+    horarioAtividade[totalDeAlocacoes][1] = data[1];
+
+    atividade[totalDeAlocacoes][0] = tituloDaAtividade;
+    atividade[totalDeAlocacoes][1] = tipoDaAtividade;
+    atividade[totalDeAlocacoes][2] = usuarioAlocador;
+    atividade[totalDeAlocacoes][3] = recursoDesejado;
+    atividade[totalDeAlocacoes][4] = descricaoDaAtividade;
+    atividade[totalDeAlocacoes][5] = participantesDaAtividade;
+    atividade[totalDeAlocacoes][6] = materialDeApoioDaAtividade;
+    atividade[totalDeAlocacoes][7] = "EM PROCESSO DE ALOCAÇÃO";
+
+    numeroDeAlocacoesPorRecurso[idRecurso] += 1;
+    numeroDeAlocacoesPorUsuario[idUsuario] += 1;
+
+    emProcessoDeAlocacao += 1;
+    if (tipoDaAtividade.equals("AULA TRADICIONAL")) {
+      aulaTradicional += 1;
+    } else if (tipoDaAtividade.equals("LABORATÓRIO")) {
+      laboratorio += 1;
+    } else {
+      apresentacao += 1;
     }
-  }
+    totalDeAlocacoes += 1;
+
+    System.out.println("Recurso em processo de alocação!\n");
+  } // 3
 
   public void consultarUsuario() {
 
     System.out.println("Pesquisar usuário: ");
     String usuarioPesquisado = scan.nextLine();
 
-    for (int i = 0; i < numeroDeUsuarios; i ++) {
+    int id = getUsuarioIdByName(usuarioPesquisado);
 
-      if (usuarioPesquisado.toUpperCase().equals(usuario[i][0].toUpperCase())) {
+    if (id == 9999) {
 
-        System.out.println("Nome: " + usuario[i][0]);
-        System.out.println("E-mail: " + usuario[i][1]);
-        System.out.println("Tipo: " + usuario[i][2]);
+      System.out.println("Usuário não encontrado!\n");
+    } else {
 
-        System.out.println("Recurosos: ");
-        if (numeroDeAlocacoesPorUsuario[i] > 0) {
+      System.out.println("Nome: " + usuario[id][0]);
+      System.out.println("E-mail: " + usuario[id][1]);
+      System.out.println("Tipo: " + usuario[id][2]);
 
-          for (int j = 0, k = 0; j < totalDeAlocacoes; j ++) {
+      System.out.println("Recurosos: ");
+      if (numeroDeAlocacoesPorUsuario[id] > 0) {
 
-            if (usuarioPesquisado.equals(atividade[j][2])) {
+        for (int j = 0; j < totalDeAlocacoes; j ++) {
 
-              printarAtividade(j);
-              k += 1;
-            }
+          if (usuarioPesquisado.toUpperCase().equals(atividade[j][2].toUpperCase())) {
+
+            printarAtividade(j);
           }
-
-          System.out.println("\nDeseja alterar algum status? (-1 == N)");
-          int resposta = scan.nextInt(); scan.nextLine();
-          if (resposta != -1) {
-            alterarStatusDaAtividade(resposta);
-          }
-        } else {
-          System.out.println("\tNenhum recurso alocado");
         }
-        System.out.printf("\n");
 
-        return;
+        alterarStatusDaAtividade();
+      } else {
+
+        System.out.println("\tNenhum recurso alocado");
       }
-    }
 
-    System.out.println("Usuário não encontrado\n");
-  }
+      System.out.printf("\n");
+    }
+  } // 4
 
   public void consultarRecurso() {
 
     System.out.println("Pesquisar recurso: ");
     String recursoPesquisado = scan.nextLine();
+    int id = getRecursoIdByName(recursoPesquisado);
 
-    for (int i = 0; i < numeroDeRecursos; i ++) {
+    if (id == 9999) {
 
-      if (recursoPesquisado.toUpperCase().equals(recurso[i][0].toUpperCase())) {
+      System.out.println("Recurso não encontrado!\n");
+    } else {
 
-        System.out.println("Identificação: " + recurso[i][0]);
-        System.out.println("Responsável: " + recurso[i][1]);
+      System.out.println("Identificação: " + recurso[id][0]);
+      System.out.println("Responsável: " + recurso[id][1]);
 
-        System.out.println("Alocações: ");
-        if (numeroDeAlocacoesPorRecurso[i] > 0) {
+      System.out.println("Alocações: ");
+      if (numeroDeAlocacoesPorRecurso[id] > 0) {
 
-          for (int j = 0, k = 0; j < totalDeAlocacoes; j ++) {
+        for (int j = 0; j < totalDeAlocacoes; j ++) {
 
-            if (recursoPesquisado.equals(atividade[j][3])) {
+          if (recursoPesquisado.equals(atividade[j][3])) {
 
-              printarAtividade(j);
-              k += 1;
-            }
+            printarAtividade(j);
           }
-
-          System.out.println("Deseja alterar algum status? (-1 == N)");
-          int resposta = scan.nextInt();
-          if (resposta != -1) {
-            alterarStatusDaAtividade(resposta);
-          }
-          return;
-        } else {
-          System.out.println("\tNenhuma alocação\n");
-          return;
         }
-      }
-    }
 
-    System.out.println("Recurso não encontrado\n");
-  }
+        alterarStatusDaAtividade();
+      } else {
+
+        System.out.println("\tNenhuma alocação");
+      }
+
+      System.out.printf("\n");
+    }
+  } // 5
 
   public void visualizarAtividades() {
 
@@ -295,29 +332,26 @@ public class Main {
     for (int i = 0; i < totalDeAlocacoes; i ++) {
       printarAtividade(i);
     }
-  }
 
-  public void alterarStatusDaAtividade(int i) {
+    alterarStatusDaAtividade();
+    System.out.printf("\n");
+  } // 6
 
-    if (atividade[i][7].equals("EM PROCESSO DE ALOCAÇÃO")) {
+  public void relatorio() {
 
-      atividade[i][7] = "ALOCADO";
-      emProcessoDeAlocacao -= 1;
-      alocado += 1;
-    } else if (atividade[i][7].equals("ALOCADO")) {
-
-      atividade[i][7] = "EM ANDAMENTO";
-      alocado -= 1;
-      emAndamento += 1;
-    } else if (atividade[i][7].equals("EM ANDAMENTO")) {
-
-      atividade[i][7] = "CONCLUÍDO";
-      emAndamento -= 1;
-      concluido += 1;
-    }
-
-    System.out.println("Status da Atividade alterado com sucesso!\n");
-  }
+    System.out.println("Quantidade de Usuários: " + numeroDeUsuarios);
+    System.out.println("Recursos: ");
+    System.out.println("\tEm processo de alocação: " + emProcessoDeAlocacao);
+    System.out.println("\tAlocado: " + alocado);
+    System.out.println("\tEm andamento: " + emAndamento);
+    System.out.println("\tConcluído: " + concluido);
+    System.out.println("\tTotal de alocações: " + totalDeAlocacoes);
+    System.out.println("Atividades: ");
+    System.out.println("\tAula Tradicional: " + aulaTradicional);
+    System.out.println("\tLaboratório: " + laboratorio);
+    System.out.println("\tApresentação: " + apresentacao);
+    System.out.printf("\n");
+  } // 7
 
   public static void main(String[] args) throws FileNotFoundException {
 
@@ -342,6 +376,7 @@ public class Main {
       System.out.println("4 - Consultar Usuário");
       System.out.println("5 - Consultar Recurso");
       System.out.println("6 - Visualizar Atividades");
+      System.out.println("7 - Relatório");
       
       int comando = mini.scan.nextInt();
       mini.scan.nextLine();
@@ -358,6 +393,8 @@ public class Main {
         case 5: mini.consultarRecurso();
           break;
         case 6: mini.visualizarAtividades();
+          break;
+        case 7: mini.relatorio();
           break;
         default: System.out.println("Por favor, selecione um comando válido!");
           break;
