@@ -12,8 +12,8 @@ import java.util.Date;
 public class Main {
 
   // Tipo da entrada
-  //Scanner scan = new Scanner(new File("entrada"));
-  Scanner scan = new Scanner(System.in);
+  Scanner scan = new Scanner(new File("entrada"));
+  //Scanner scan = new Scanner(System.in);
 
   /* Contadores */
   public static int numeroDeUsuarios;
@@ -31,13 +31,13 @@ public class Main {
   /* Contadores */
 
   /* Dados do Sistema */
-  public static String[][] usuario = new String[100][3]; //100 usuários, cada um com 3 informações
+  public static String[][] usuario = new String[100][4]; //100 usuários, cada um com 4 informações
   public static int[] numeroDeAlocacoesPorUsuario = new int[100];
 
-  public static String[][] recurso = new String[100][2]; //100 recursos, cada um com 2 informações
+  public static String[][] recurso = new String[100][3]; //100 recursos, cada um com 3 informações
   public static int[] numeroDeAlocacoesPorRecurso = new int[100];
 
-  public static String[][] atividade = new String[1000][8]; //1000 atividades, cada uma com 8 informações
+  public static String[][] atividade = new String[1000][9]; //1000 atividades, cada uma com 9 informações
   public static int[][][] horarioAtividade = new int[1000][2][5]; // 1000 datas, cada uma com início e fim, e cada um com 5 informações
   /* Dados do Sistema*/
 
@@ -47,12 +47,33 @@ public class Main {
   // Faz uma busca pelo ID do usuário de acordo com o nome dele
   public int getUsuarioIdByName(String nome) {
 
+    int[] id = new int[numeroDeUsuarios];
+    int quantidade = 0;
+
     for (int i = 0; i < numeroDeUsuarios; i ++) {
 
       if (nome.toUpperCase().equals(usuario[i][0].toUpperCase())) {
-
-        return(i);
+        id[quantidade ++] = i;
       }
+    }
+
+    if (quantidade == 0) {
+
+      return(9999);
+    } else if (quantidade == 1) {
+
+      return(id[0]);
+    }
+    if (quantidade > 1) {
+
+      System.out.println("\nForam encontrados " + quantidade + " usuários com este nome!");
+      System.out.println("Selecione o usuário desejado:");
+      for (int i = 0; i < quantidade; i ++) {
+
+        System.out.println("\t" + i + " - CPF: " + usuario[id[i]][3]);
+      }
+      int resposta = scan.nextInt(); scan.nextLine();
+      return(id[resposta]);
     }
 
     return(9999);
@@ -70,6 +91,18 @@ public class Main {
     }
 
     return(9999);
+  }
+
+  // Verifica se o CPF digitado já está no "Banco de Dados"
+  public boolean cpfValido(String cpf) {
+
+    for (int i = 0; i < numeroDeUsuarios; i ++) {
+
+      if (cpf.equals(usuario[i][3])) {
+        return(false);
+      }
+    }
+    return(true);
   }
 
   // Altera o Status das Atividades
@@ -119,6 +152,7 @@ public class Main {
     System.out.println("\t\tTérmino: " + horarioAtividade[i][1][0] + ':' + horarioAtividade[i][1][1] + ", "
       + horarioAtividade[i][1][2] + '/' + horarioAtividade[i][1][3] + '/' + horarioAtividade[i][1][4]);
     System.out.println("\t\tUsuário: " + atividade[i][2]);
+    System.out.println("\t\tCPF: " + atividade[i][8]);
     System.out.println("\t\tRecurso: " + atividade[i][3]);
     System.out.println("\t\tParticipantes: " + atividade[i][5]);
     System.out.println("\t\tMaterial de Apoio: " + atividade[i][6]);
@@ -133,6 +167,13 @@ public class Main {
     System.out.println("Digite o nome:");
     String nome =  scan.nextLine();
 
+    System.out.println("Digite o CPF do usuário:");
+    String CPF = scan.nextLine().toUpperCase();
+    if (!cpfValido(CPF)) {
+      System.out.println("Usuário já cadastrado!");
+      return;
+    }
+
     System.out.println("Digite o e-mail:");
     String email = scan.nextLine();
 
@@ -142,6 +183,7 @@ public class Main {
     usuario[numeroDeUsuarios][0] = nome;
     usuario[numeroDeUsuarios][1] = email;
     usuario[numeroDeUsuarios][2] = tipo;
+    usuario[numeroDeUsuarios][3] = CPF;
     numeroDeAlocacoesPorUsuario[numeroDeUsuarios] = 0;
     numeroDeUsuarios += 1;
 
@@ -159,8 +201,16 @@ public class Main {
     System.out.println("Digite o responsável: ");
     String responsavel = scan.nextLine();
 
+    int id = getUsuarioIdByName(responsavel);
+    if (id == 9999) {
+
+      System.out.println("Usuário inexistente!");
+      return;
+    }
+
     recurso[numeroDeRecursos][0] = identificacao;
     recurso[numeroDeRecursos][1] = responsavel;
+    recurso[numeroDeRecursos][2] = usuario[id][3]; // CPF
     numeroDeAlocacoesPorRecurso[numeroDeRecursos] = 0;
     numeroDeRecursos += 1;
 
@@ -217,7 +267,7 @@ public class Main {
 
     for (int j = 0; j < totalDeAlocacoes; j ++) { // Verificando se o horário está disponível
 
-      if (recursoDesejado.toUpperCase().equals(atividade[j][3].toUpperCase()) || usuarioAlocador.toUpperCase().equals(atividade[j][2].toUpperCase())) { // Situações de horário conflitante
+      if (recursoDesejado.equalsIgnoreCase(atividade[j][3]) || usuario[idUsuario][3].equalsIgnoreCase(atividade[j][8])) { // Situações de horário conflitante
 
         alocacaoInicio = (horarioAtividade[j][0][4] * 365 * 24 * 60) + (horarioAtividade[j][0][3] * 31 * 24 * 60) + (horarioAtividade[j][0][2] * 24 * 60) + (horarioAtividade[j][0][0] * 60) + (horarioAtividade[j][0][1]);
         alocacaoFim = (horarioAtividade[j][1][4] * 365 * 24 * 60) + (horarioAtividade[j][1][3] * 31 * 24 * 60) + (horarioAtividade[j][1][2] * 24 * 60) + (horarioAtividade[j][1][0] * 60) + (horarioAtividade[j][1][1]);
@@ -253,6 +303,7 @@ public class Main {
     atividade[totalDeAlocacoes][5] = participantesDaAtividade;
     atividade[totalDeAlocacoes][6] = materialDeApoioDaAtividade;
     atividade[totalDeAlocacoes][7] = "EM PROCESSO DE ALOCAÇÃO";
+    atividade[totalDeAlocacoes][8] = usuario[idUsuario][3]; // CPF
 
     numeroDeAlocacoesPorRecurso[idRecurso] += 1;
     numeroDeAlocacoesPorUsuario[idUsuario] += 1;
@@ -288,13 +339,14 @@ public class Main {
       System.out.println("Nome: " + usuario[id][0]);
       System.out.println("E-mail: " + usuario[id][1]);
       System.out.println("Tipo: " + usuario[id][2]);
+      System.out.println("CPF: " + usuario[id][3]);
 
       System.out.println("Recurosos: ");
       if (numeroDeAlocacoesPorUsuario[id] > 0) {
 
         for (int j = 0; j < totalDeAlocacoes; j ++) {
 
-          if (usuarioPesquisado.toUpperCase().equals(atividade[j][2].toUpperCase())) {
+          if (usuario[id][3].equalsIgnoreCase(atividade[j][8])) {
 
             printarAtividade(j);
           }
@@ -326,6 +378,7 @@ public class Main {
 
       System.out.println("Identificação: " + recurso[id][0]);
       System.out.println("Responsável: " + recurso[id][1]);
+      System.out.println("CPF: " + recurso[id][2]);
 
       System.out.println("Alocações: ");
       if (numeroDeAlocacoesPorRecurso[id] > 0) {
@@ -397,8 +450,9 @@ public class Main {
     apresentacao = 0;
     laboratorio = 0;
 
+    boolean logged = true;
     // Menu principal
-    while (true) {
+    while (logged) {
 
       System.out.println("----------Menu Principal----------");
       System.out.println("1 - Cadastrar Usuário");
@@ -408,6 +462,7 @@ public class Main {
       System.out.println("5 - Consultar Recurso");
       System.out.println("6 - Visualizar Atividades");
       System.out.println("7 - Relatório");
+      System.out.println("8 - Sair");
 
       int comando = mini.scan.nextInt();
       mini.scan.nextLine();
@@ -427,9 +482,14 @@ public class Main {
           break;
         case 7: mini.relatorio();
           break;
+        case 8: logged = false;
+          break;
         default: System.out.println("Por favor, selecione um comando válido!");
           break;
       }
     }
+
+    System.out.println("Até logo! :)");
+    return;
   }
 }
